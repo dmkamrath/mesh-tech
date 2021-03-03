@@ -9,6 +9,7 @@
 #include "CylinderMeshGen.h"
 #include "PointConnector.h"
 #include "BeamGen.h"
+#include "SwordGen.h"
 
 #include "PromeshDriver.generated.h"
 
@@ -40,10 +41,19 @@ public:
 	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = "Default")
 	UTextRenderComponent* Drag4TextComp;
 
+	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = "Default")
+	FSwordGenParams SwordGenParams;
+
+	UPROPERTY()
+	USwordGen* SwordGen;
+
 	APromeshDriver();
 
 	UFUNCTION(BlueprintCallable, CallInEditor, Category = "Default")
 	void GenerateMesh();
+
+	UFUNCTION(BlueprintCallable, CallInEditor, Category = "Default")
+	void GenerateSword();
 
 protected:
 	virtual void BeginPlay() override;

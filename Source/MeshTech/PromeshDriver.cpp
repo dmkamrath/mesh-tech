@@ -7,8 +7,11 @@ APromeshDriver::APromeshDriver()
 {
 	PrimaryActorTick.bCanEverTick = true;
 
-	Promesh = CreateDefaultSubobject<UProceduralMeshComponent>("Promesh");
+	Promesh = CreateDefaultSubobject<UProceduralMeshComponent>(TEXT("Promesh"));
 	RootComponent = Promesh;
+
+	SwordGen = CreateDefaultSubobject<USwordGen>(TEXT("SwordGen"));
+	SwordGen->Promesh = Promesh;
 
 	Drag1 = CreateDefaultSubobject<USceneComponent>("Drag1");
 	Drag2 = CreateDefaultSubobject<USceneComponent>("Drag2");
@@ -45,6 +48,12 @@ void APromeshDriver::GenerateMesh()
 	FVector P4 = Drag4->GetComponentLocation() - GetActorLocation();
 	//UPointConnector::Connect4P(P1, P2, P3, P4, Promesh);
 	UBeamGen::GenerateBeam({ 10, 10 }, P1, P2, FRotator::ZeroRotator, Promesh);
+}
+
+void APromeshDriver::GenerateSword()
+{
+	SwordGen->SetParams(SwordGenParams);
+	SwordGen->Generate();
 }
 
 void APromeshDriver::BeginPlay()

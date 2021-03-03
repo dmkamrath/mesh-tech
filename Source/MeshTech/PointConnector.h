@@ -6,6 +6,8 @@
 #include "UObject/NoExportTypes.h"
 #include "ProceduralMeshComponent.h"
 
+#include "PromeshBuilder.h"
+
 #include "PointConnector.generated.h"
 
 

@@ -34,7 +34,15 @@ void UPointConnector::Connect4P(FVector P1, FVector P2, FVector P3, FVector P4, 
 
 	FVector SurfaceTangent = (P1 - P2).GetSafeNormal();
 	FProcMeshTangent Tangent(SurfaceTangent, true);
-	Tangents = { Tangent, Tangent, Tangent, Tangent };
+	//Tangents = { Tangent, Tangent, Tangent, Tangent };
+
+	UPromeshBuilder* Builder = NewObject<UPromeshBuilder>();
+
+	Builder->AddVert(P1);
+	FVector QuadVerts[4] = { P1, P2, P3, P4 };
+	Builder->MakeQuad(QuadVerts);
+	//Builder->BuildMesh(Promesh);
+
 
 	//Promesh->ClearAllMeshSections();
 	Promesh->CreateMeshSection_LinearColor(Index, Vertices, Triangles, Normals, UVs, VertexColors, Tangents, true);
@@ -50,6 +58,11 @@ void UPointConnector::Connect8P(TArray<FVector> Pts, UProceduralMeshComponent* P
 	TArray<FVector> Normals;
 	TArray<FProcMeshTangent> Tangents;
 	TArray<FColor> VertexColors;
+
+	for (auto P : Pts)
+	{
+		VertexColors.Add(FColor::Blue);
+	}
 
 	float Length = (Pts[0] - Pts[4]).Size();
 	float Width = (Pts[0] - Pts[1]).Size();
