@@ -9,6 +9,8 @@
 #include "PointConnector.h"
 #include "BeamGen.h"
 #include "PromeshBuilder.h"
+#include "ShapeBase.h"
+#include "MaterialStatics.h"
 
 #include "SwordGen.generated.h"
 

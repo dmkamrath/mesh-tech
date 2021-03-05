@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 #include "UObject/NoExportTypes.h"
 #include "SwordGen.h"
+#include "MaterialStatics.h"
 
 #include "SwordGenStatics.generated.h"
 
@@ -26,4 +27,5 @@ public:
 	static FSwordGenGripParams GetGripParams();
 
 	static FSwordGenGripCapParams GetGripCapParams();
+
 };

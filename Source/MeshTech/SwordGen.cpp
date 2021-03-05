@@ -55,7 +55,7 @@ void USwordGen::GenerateBlade()
 
 	// Each section of the blade will be a "line" of points to be stitched to a line below it
 
-	int32 NumTaperDivisions = 3;
+	int32 NumTaperDivisions = 4;
 
 	TArray<FVector> TaperEdges;
 	TArray<FVector> TaperCenters;
@@ -73,6 +73,9 @@ void USwordGen::GenerateBlade()
 
 	FVector EdgeQuad[4] = { TaperCenter1, BaseTop, BaseEdge, TaperEdge1 };
 
+	
+
+
 
 
 	uint8 MirrorAxis = EMirrorAxis::X | EMirrorAxis::Z;
@@ -80,7 +83,17 @@ void USwordGen::GenerateBlade()
 	PromeshBuilder->MakeMirroredQuad(TaperQuad, MirrorAxis);
 	PromeshBuilder->MakeMirroredQuad(EdgeQuad, MirrorAxis);
 
+	// Blade deco experiments
+
+	UVertLine* BladeRidge = UVertLine::Ln(BaseTop, TaperMidCenter);
+	//PromeshBuilder->AddBorderLines(BladeRidge, 1.5, 5, EMirrorAxis::Z, 0.05);
+
+
 	PromeshBuilder->BuildMesh(Promesh, 0);
+
+	PromeshBuilder->AddDecoBorderLines(BladeRidge, 1.5, 5, UMaterialStatics::DarkMattGoldMaterial(), EMirrorAxis::Z, 0.05);
+	PromeshBuilder->BuildMesh(Promesh, 9);
+
 }
 
 void USwordGen::GenerateGuard()
@@ -103,15 +116,18 @@ void USwordGen::GenerateGuard()
 	FVector FRD = { F, R, D };
 	FVector FCU = { F, C, U };
 	FVector FRU = { F, R*.9f, U*.8f };
+	FVector FRUM = { F, R*.95f, U*.7f };
 
 	FVector MCU = { M, C, U };
 	FVector MRD = { M, R, D };
 	FVector MRU = { M, R*.9f, U*.8f };
+	FVector MRUM = { M, R * .95f, U * .7f };
 
 	FVector BCD = { B, C, D };
 	FVector BRD = { B, R, D };
 	FVector BCU = { B, C, U };
 	FVector BRU = { B, R*.9f, U*.8f };
+	FVector BRUM = { B, R * .95f, U * .7f };
 
 	FVector Q1[4] = { FCD, FCU, FRU, FRD };
 	FVector Q2[4] = { FCU, MCU, MRU, FRU };
@@ -120,12 +136,44 @@ void USwordGen::GenerateGuard()
 	FVector Q5[4] = { FRU, BRU, BRD, FRD };
 
 	uint8 Mirror = EMirrorAxis::X | EMirrorAxis::Z;
-	PromeshBuilder->MakeMirroredQuad(Q1, Mirror);
+	/*PromeshBuilder->MakeMirroredQuad(Q1, Mirror);
 	PromeshBuilder->MakeMirroredQuad(Q2, Mirror);
 	PromeshBuilder->MakeMirroredQuad(Q3, Mirror);
 	PromeshBuilder->MakeMirroredQuad(Q4, Mirror);
-	PromeshBuilder->MakeMirroredQuad(Q5, Mirror);
+	PromeshBuilder->MakeMirroredQuad(Q5, Mirror);*/
+
+	UVertLine* L1 = UVertLine::Ln(FCD, FRD);
+	UVertLine* L2 = UVertLine::Ln({ FCU, FRU, FRUM, FRD });
+	UVertLine* L3 = UVertLine::Ln({ BCU, BRU, BRUM, BRD });
+	UVertLine* L4 = UVertLine::Ln(BCD, BRD);
+
+	FRUM.Z += 5;
+	FRUM.Y += 10;
+	BRUM.Z += 5;
+	BRUM.Y += 10;
+
+	//L2->Bend(10, FRUM);
+	//L3->Bend(10, BRUM);
+
+	FRD.X -= 20;
+	FRD.Z += 4;
+	L1->Bend(10, FRD);
+	L2->Bend(10, FRD);
+	L3->Bend(10, FRD);
+	L4->Bend(10, FRD);
+
+	
+
+	TArray<UVertLine*> Lines = { L1, L2, L3, L4 };
+	PromeshBuilder->StitchLineSequence(Lines, false, Mirror);
+
+
+
 	PromeshBuilder->BuildMesh(Promesh, 1);
+
+	PromeshBuilder->AddDecoBorderLines(L2, 2.5, 7, UMaterialStatics::DarkMattGoldMaterial(), Mirror, 0.75);
+	PromeshBuilder->AddDecoBorderLines(L3, 1.5, 7, UMaterialStatics::DarkMattGoldMaterial(), Mirror, 0.85);
+	PromeshBuilder->BuildMesh(Promesh, 7);
 }
 
 void USwordGen::GenerateGrip()
@@ -156,17 +204,13 @@ void USwordGen::GenerateGrip()
 	FVector BCU = { B, C, U };
 	FVector BRU = { B, R * .7f, U * .7f };
 
-	FVector Q1[4] = { FCD, FCU, FRU, FRD };
 	FVector Q2[4] = { FCU, MCU, MRU, FRU };
 	FVector Q3[4] = { MCU, BCU, BRU, MRU };
-	FVector Q4[4] = { BCU, BCD, BRD, BRU };
 	FVector Q5[4] = { FRU, BRU, BRD, FRD };
 
 	uint8 Mirror = EMirrorAxis::X | EMirrorAxis::Z;
-	//PromeshBuilder->MakeMirroredQuad(Q1, Mirror);
 	PromeshBuilder->MakeMirroredQuad(Q2, Mirror);
 	PromeshBuilder->MakeMirroredQuad(Q3, Mirror);
-	//PromeshBuilder->MakeMirroredQuad(Q4, Mirror);
 	PromeshBuilder->MakeMirroredQuad(Q5, Mirror);
 	PromeshBuilder->BuildMesh(Promesh, 2);
 }
@@ -190,16 +234,16 @@ void USwordGen::GenerateGripCap()
 	FVector FCD = { F, C, D };
 	FVector FRD = { F, R, D };
 	FVector FCU = { F, C, U };
-	FVector FRU = { F, R * .9f, U * .8f };
+	FVector FRU = { F, R*.8f, U*.8f };
 
 	FVector MCU = { M, C, U };
 	FVector MRD = { M, R, D };
-	FVector MRU = { M, R * .9f, U * .8f };
+	FVector MRU = { M, R*.8f, U*.8f };
 
 	FVector BCD = { B, C, D };
 	FVector BRD = { B, R, D };
 	FVector BCU = { B, C, U };
-	FVector BRU = { B, R * .9f, U * .8f };
+	FVector BRU = { B, R*.8f, U*.8f };
 
 	/*FVector Q1[4] = { FCD, FCU, FRU, FRD };
 	FVector Q2[4] = { FCU, MCU, MRU, FRU };
@@ -219,27 +263,23 @@ void USwordGen::GenerateGripCap()
 
 	UVertLine* L1 = UVertLine::Ln({ FCD, FRD });
 	UVertLine* L2 = UVertLine::Ln({ FCU, FRU, FRD });
-	UVertLine* L3 = UVertLine::Ln({ MCU, MRU, MRD });
-	UVertLine* L4 = UVertLine::Ln({ BCU, BRU, BRD });
-	UVertLine* L5 = UVertLine::Ln({ BCD, BRD });
+	UVertLine* L3 = UVertLine::Ln({ BCU, BRU, BRD });
+	UVertLine* L4 = UVertLine::Ln({ BCD, BRD });
 
 	FVector ControlPoint = MRU;
 	ControlPoint.Y += 2;
 	ControlPoint.Z += 1;
 	//ControlPoint.X -= 10;
-	L1->Subdivide(4);
-	L2->Bend(4, ControlPoint);
-	L3->Bend(4, ControlPoint);
-	L4->Bend(4, ControlPoint);
-	L5->Subdivide(4);
+	//L1->Subdivide(4);
+	//L2->Bend(4, ControlPoint);
+	//L3->BendKeepStraightEnds(4, ControlPoint);
+	//L4->Bend(4, ControlPoint);
+	//L5->Subdivide(4);
 
-	TArray<UVertLine*> Enc = L3->BorderLine(1, 5);
-	for (int32 I = 1; I < Enc.Num(); I++)
-	{
-		PromeshBuilder->StitchLines(Enc[I], Enc[I - 1], true, Mirror);
-	}
+	PromeshBuilder->AddBorderLines(L2, 1, 5, Mirror);
+	PromeshBuilder->AddBorderLines(L3, 1, 5, Mirror);
 
-	TArray<UVertLine*> LineSeq = { L1, L2, L3, L4, L5 };
+	TArray<UVertLine*> LineSeq = { L1, L2, L3, L4 };
 	PromeshBuilder->StitchLineSequence(LineSeq, false, Mirror);
 
 
@@ -248,34 +288,16 @@ void USwordGen::GenerateGripCap()
 
 void USwordGen::GenerateDeco()
 {
-	// Test out line stitching
-
-	FVector L1s = { 100, 100, 50 };
-	FVector L1e = { 100, 200, 50 };
-	FVector L2s = { 200, 100, 50 };
-	FVector L2e = { 200, 200, 50 };
-
-	UVertLine* L1 = UVertLine::Ln(L1s, L1e);
-	UVertLine* L2 = UVertLine::Ln(L2s, L2e);
-
-	
-
-	//L1->Subdivide(10);
-	L2->Subdivide(10);
-
-	FVector ControlPoint = { 0, 100, 50 };
-
-	L1->Bend(20, ControlPoint);
-
-	TArray<UVertLine*> Enc = L1->BorderLine(3, 10);
-	for (int32 I = 1; I < Enc.Num(); I++)
-	{
-		PromeshBuilder->StitchLines(Enc[I], Enc[I - 1], true);
-	}
-
-	PromeshBuilder->MaterialParams.bShadeFlat = true;
-	PromeshBuilder->StitchLines(L1, L2);
-	PromeshBuilder->BuildMesh(Promesh, 4);
+	UCubeBase* Cube = NewObject<UCubeBase>();
+	Cube->Dims = { 20, 20, 10 };
+	Cube->Dir = { 1, 1, 1 };
+	Cube->InitLines();
+	FVector Cp = { 20, 10, 12 };
+	FVector Cp2 = { 25, 45, 11 };
+	Cube->Bend(15, Cp, Cp2);
+	uint8 Mirror = EMirrorAxis::X | EMirrorAxis::Z;
+	//PromeshBuilder->StitchLineSequence(Cube->Lines, false, Mirror);
+	//PromeshBuilder->BuildMesh(Promesh, 4);
 }
 
 /*

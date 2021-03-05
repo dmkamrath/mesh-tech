@@ -21,11 +21,7 @@ FSwordGenBladeParams USwordGenStatics::GetBladeParams()
 	P.Generics.Width = .2;
 	P.Generics.Thickness = .025;
 	P.TipGradient = 35.0;
-
-	P.Generics.MaterialParams.bShadeFlat = true;
-	P.Generics.MaterialParams.Metalic = 0.8;
-	P.Generics.MaterialParams.Roughness = 0.2;
-	P.Generics.MaterialParams.Color = FColor(40, 40, 40, 255);
+	P.Generics.MaterialParams = UMaterialStatics::DarkSheenMetalMaterial();
 
 	return P;
 }
@@ -36,11 +32,7 @@ FSwordGenGuardParams USwordGenStatics::GetGuardParams()
 	P.Generics.Length = 0.1;
 	P.Generics.Width = 0.5;
 	P.Generics.Thickness = 0.1;
-
-	P.Generics.MaterialParams.bShadeFlat = true;
-	P.Generics.MaterialParams.Metalic = 0.5;
-	P.Generics.MaterialParams.Roughness = 0.8;
-	P.Generics.MaterialParams.Color = FColor(80, 80, 80, 255);
+	P.Generics.MaterialParams = UMaterialStatics::LightMattMetalMaterial();
 
 	return P;
 }
@@ -51,11 +43,7 @@ FSwordGenGripParams USwordGenStatics::GetGripParams()
 	P.Generics.Length = 0.6;
 	P.Generics.Width = 0.10;
 	P.Generics.Thickness = 0.08;
-
-	P.Generics.MaterialParams.bShadeFlat = false;
-	P.Generics.MaterialParams.Metalic = 0.0;
-	P.Generics.MaterialParams.Roughness = 0.9;
-	P.Generics.MaterialParams.Color = FColor(0x13, 0x0E, 0x09, 255);
+	P.Generics.MaterialParams = UMaterialStatics::DarkWoodMaterial();
 
 	return P;
 }
@@ -66,11 +54,7 @@ FSwordGenGripCapParams USwordGenStatics::GetGripCapParams()
 	P.Generics.Length = 0.1;
 	P.Generics.Width = 0.1;
 	P.Generics.Thickness = 0.1;
-
-	P.Generics.MaterialParams.bShadeFlat = true;
-	P.Generics.MaterialParams.Metalic = 0.9;
-	P.Generics.MaterialParams.Roughness = 0.1;
-	P.Generics.MaterialParams.Color = FColor(220, 220, 220, 255);
+	P.Generics.MaterialParams = UMaterialStatics::DarkMattGoldMaterial();
 
 	return P;
 }
