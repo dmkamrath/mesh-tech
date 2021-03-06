@@ -49,5 +49,7 @@ class MESHTECH_API UCubeBase : public UShapeBase
 	GENERATED_BODY()
 public:
 
+
+
 	virtual void InitLines() override;
 };

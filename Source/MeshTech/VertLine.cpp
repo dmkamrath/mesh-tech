@@ -74,42 +74,12 @@ void UVertLine::RecursiveBetweenLines(UVertLine* Other, int32 N, TArray<UVertLin
 
 UVertLine* UVertLine::Enclose2D(FVector Center, float R, FVector Up, int32 VertCount, FVector FirstVertGuide[2])
 {
-	if (Up == FVector(0, 0, 0))
-		return nullptr;
-
-	Up.Normalize();
-
-	UVertLine* L = NewObject<UVertLine>();
-
-	FVector Ortho = GetOrthogonalVector(Up);
-
-	// Find ortho plane and last line intercept, then multiply by R and use as first vert
-	if (FirstVertGuide[0] != FVector(0, 0, 0))
-	{
-		FVector GuideIntersection = FMath::LinePlaneIntersection(FirstVertGuide[0], FirstVertGuide[1], Center, Up);
-		Ortho = (GuideIntersection - Center).GetSafeNormal();
-	}
-
-	float Theta = 360.0 / (float)VertCount;
-
-	for (int32 I = 0; I < VertCount; I++)
-	{
-		FVector V = Center + (Ortho.RotateAngleAxis(Theta * (float)I, Up) * R);
-		L->Verts.Add(V);
-	}
-
-	return L;
+	return UVertLine::Ln(UVecOps::NPointEnclosure2D(Center, R, Up, VertCount, FirstVertGuide));
 }
 
 TArray<UVertLine*> UVertLine::BorderLine(float SegmentThickness, int32 SegmentVertexCount, float ThicknessDecay)
 {
 	TArray<UVertLine*> EnclosureLines;
-
-	// Add fake points at start and end to make first and last tangents flat
-	TArray<FVector> CachedVerts = Verts;
-
-	// Tries to make start and end directions "flat" so that they connect to mirrors
-	//AddStartEndTangentPoints();
 
 	FVector NextPlaneInterceptLine[2] = { FVector(0,0,0), FVector(0,0,0) };
 	FVector D0 = (Verts[1] - Verts[0]).GetSafeNormal();
@@ -136,8 +106,6 @@ TArray<UVertLine*> UVertLine::BorderLine(float SegmentThickness, int32 SegmentVe
 	UVertLine* LN = Enclose2D(Verts[Verts.Num() - 1], SegmentThickness, DN, SegmentVertexCount, NextPlaneInterceptLine);
 	EnclosureLines.Add(LN);
 	
-	Verts = CachedVerts;
-
 	return EnclosureLines;
 }
 
@@ -176,68 +144,6 @@ void UVertLine::Bend(int32 Divisions, FVector ControlPoint1, FVector ControlPoin
 	FVector P3 = GetEnd();
 	Verts.Empty();
 	AddBezierPoints(Divisions, P0, ControlPoint1, ControlPoint2, P3);
-}
-
-
-void UVertLine::BendKeepStraightEnds(int32 Divisions, FVector ControlPoint)
-{
-
-	// This matters for enclosure, so move it there
-
-	if (Verts.Num() < 3)
-		return;
-
-	FVector V0 = GetStart();
-	FVector VN = GetEnd();
-
-	FVector D0 = (Verts[1] - V0).GetSafeNormal();
-	D0.X = FMath::RoundToDouble(D0.X);
-	D0.Y = FMath::RoundToDouble(D0.Y);
-	D0.Z = FMath::RoundToDouble(D0.Z);
-	D0.GetSafeNormal();
-
-	FVector DN = (VN - Verts[Verts.Num() - 2]).GetSafeNormal();
-	DN.X = FMath::RoundToDouble(DN.X);
-	DN.Y = FMath::RoundToDouble(DN.Y);
-	DN.Z = FMath::RoundToDouble(DN.Z);
-	DN.GetSafeNormal();
-
-
-	FVector V1 = V0 + D0 * 0.001;
-	FVector VNM1 = VN - DN * 0.001;
-
-	Verts.Empty();
-	Verts.Add(V0);
-	AddBezierPoints(Divisions, V1, ControlPoint, VNM1);
-	Verts.Add(VN);
-}
-
-void UVertLine::AddStartEndTangentPoints()
-{
-	FVector V0 = GetStart();
-	FVector VN = GetEnd();
-
-	float SnapThresh = 0.6;
-
-	FVector D0 = (Verts[1] - V0).GetSafeNormal();
-	VectorMaxComponentDir(D0);
-
-	FVector DN = (VN - Verts[Verts.Num() - 2]).GetSafeNormal();
-	VectorMaxComponentDir(DN);
-
-	FVector V1 = V0 - D0 * 0.001;
-	FVector VNM1 = VN + DN * 0.001;
-
-	TArray<FVector> NewVerts;
-	NewVerts.Add(V0);
-	NewVerts.Add(V1);
-	for (int32 I = 1; I < Verts.Num() - 1; I++)
-	{
-		NewVerts.Add(Verts[I]);
-	}
-	NewVerts.Add(VNM1);
-	NewVerts.Add(VN);
-	Verts = NewVerts;
 }
 
 void UVertLine::ClampVertsForMirrorAxis(FIntVector MirrorAxis)
@@ -352,18 +258,6 @@ FVector UVertLine::GetOrthogonalVector(FVector V)
 		}
 	}
 	return FVector(0, 0, 0);
-}
-
-void UVertLine::SnapVector(FVector& V, float SnapThresh)
-{
-	for (int32 I = 0; I < 3; I++)
-	{
-		if (FMath::Abs(V[I]) < SnapThresh)
-			V[I] = 0.0;
-		else
-			V[I] = FMath::Sign(V[I]);
-	}
-	V.Normalize();
 }
 
 void UVertLine::VectorMaxComponentDir(FVector& V)

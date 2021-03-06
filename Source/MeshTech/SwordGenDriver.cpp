@@ -12,6 +12,7 @@ ASwordGenDriver::ASwordGenDriver()
 	SwordGen->Promesh = Promesh;
 
 	SwordGenParams = USwordGenStatics::GetSwordGenParams();
+	SwordGenParams.MasterScale = 1000;
 
 }
 

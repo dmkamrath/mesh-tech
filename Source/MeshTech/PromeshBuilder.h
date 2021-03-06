@@ -183,8 +183,6 @@ public:
 
 	void MakeMirroredTri(FVector TriVerts[3], uint8 MirrorAxis);
 
-	void StitchMirroredLines(UVertLine* L, uint8 MirrorAxis);
-
 	void StitchLines(UVertLine* L1, UVertLine* L2, bool bConnectEnds = false, uint8 MirrorAxis = 0);
 
 	void StitchLineSequence(TArray<UVertLine*> Lines, bool bConnectEnds = false, uint8 MirrorAxis = 0);

@@ -4,6 +4,8 @@
 
 #include "CoreMinimal.h"
 #include "UObject/NoExportTypes.h"
+#include "VecOps.h"
+
 #include "VertLine.generated.h"
 
 /**
@@ -44,10 +46,6 @@ public:
 
 	void Bend(int32 Divisions, FVector ControlPoint1, FVector ControlPoint2);
 
-	void BendKeepStraightEnds(int32 Divisions, FVector ControlPoint);
-
-	void AddStartEndTangentPoints();
-
 	void ClampVertsForMirrorAxis(FIntVector MirrorAxis);
 
 	void AddBezierPoints(int32 N, FVector P0, FVector P1, FVector P2);
@@ -63,8 +61,6 @@ public:
 	UVertLine* GetCenterPointAsLine();
 
 	static FVector GetOrthogonalVector(FVector V);
-
-	static void SnapVector(FVector& V, float SnapThresh);
 
 	static void VectorMaxComponentDir(FVector& V);
 

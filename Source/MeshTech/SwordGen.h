@@ -162,6 +162,8 @@ public:
 	
 	void GenerateDeco();
 
+	float GetMasterScale();
+
 	/*
 			Blade Parameters
 	*/

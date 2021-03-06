@@ -91,7 +91,7 @@ void USwordGen::GenerateBlade()
 
 	PromeshBuilder->BuildMesh(Promesh, 0);
 
-	PromeshBuilder->AddDecoBorderLines(BladeRidge, 1.5, 5, UMaterialStatics::DarkMattGoldMaterial(), EMirrorAxis::Z, 0.05);
+	PromeshBuilder->AddDecoBorderLines(BladeRidge, 0.0045 * GetMasterScale(), 5, UMaterialStatics::DarkMattGoldMaterial(), EMirrorAxis::Z, 0.05);
 	PromeshBuilder->BuildMesh(Promesh, 9);
 
 }
@@ -147,16 +147,12 @@ void USwordGen::GenerateGuard()
 	UVertLine* L3 = UVertLine::Ln({ BCU, BRU, BRUM, BRD });
 	UVertLine* L4 = UVertLine::Ln(BCD, BRD);
 
-	FRUM.Z += 5;
-	FRUM.Y += 10;
-	BRUM.Z += 5;
-	BRUM.Y += 10;
 
 	//L2->Bend(10, FRUM);
 	//L3->Bend(10, BRUM);
 
-	FRD.X -= 20;
-	FRD.Z += 4;
+	FRD.X -= 0.060 * GetMasterScale();
+	FRD.Z += 0.04 * GetMasterScale();
 	L1->Bend(10, FRD);
 	L2->Bend(10, FRD);
 	L3->Bend(10, FRD);
@@ -170,9 +166,9 @@ void USwordGen::GenerateGuard()
 
 
 	PromeshBuilder->BuildMesh(Promesh, 1);
-
-	PromeshBuilder->AddDecoBorderLines(L2, 2.5, 7, UMaterialStatics::DarkMattGoldMaterial(), Mirror, 0.75);
-	PromeshBuilder->AddDecoBorderLines(L3, 1.5, 7, UMaterialStatics::DarkMattGoldMaterial(), Mirror, 0.85);
+	float BorderThickness = 0.025 * GetMasterScale();
+	PromeshBuilder->AddDecoBorderLines(L2, BorderThickness, 7, UMaterialStatics::DarkMattGoldMaterial(), Mirror, 0.75);
+	PromeshBuilder->AddDecoBorderLines(L3, BorderThickness*.5, 7, UMaterialStatics::DarkMattGoldMaterial(), Mirror, 0.85);
 	PromeshBuilder->BuildMesh(Promesh, 7);
 }
 
@@ -275,9 +271,10 @@ void USwordGen::GenerateGripCap()
 	//L3->BendKeepStraightEnds(4, ControlPoint);
 	//L4->Bend(4, ControlPoint);
 	//L5->Subdivide(4);
-
-	PromeshBuilder->AddBorderLines(L2, 1, 5, Mirror);
-	PromeshBuilder->AddBorderLines(L3, 1, 5, Mirror);
+	
+	float BorderThickness = 0.01 * GetMasterScale();
+	PromeshBuilder->AddBorderLines(L2, BorderThickness, 5, Mirror);
+	PromeshBuilder->AddBorderLines(L3, BorderThickness, 5, Mirror);
 
 	TArray<UVertLine*> LineSeq = { L1, L2, L3, L4 };
 	PromeshBuilder->StitchLineSequence(LineSeq, false, Mirror);
@@ -296,8 +293,13 @@ void USwordGen::GenerateDeco()
 	FVector Cp2 = { 25, 45, 11 };
 	Cube->Bend(15, Cp, Cp2);
 	uint8 Mirror = EMirrorAxis::X | EMirrorAxis::Z;
-	//PromeshBuilder->StitchLineSequence(Cube->Lines, false, Mirror);
-	//PromeshBuilder->BuildMesh(Promesh, 4);
+	PromeshBuilder->StitchLineSequence(Cube->Lines, false, Mirror);
+	PromeshBuilder->BuildMesh(Promesh, 4);
+}
+
+float USwordGen::GetMasterScale()
+{
+	return Params.MasterScale;
 }
 
 /*

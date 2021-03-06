@@ -145,31 +145,6 @@ void UPromeshBuilder::MakeMirroredTri(FVector TriVerts[3], uint8 MirrorAxis)
 	}
 }
 
-void UPromeshBuilder::StitchMirroredLines(UVertLine* L, uint8 MirrorAxis)
-{
-	if (MirrorAxis & EMirrorAxis::X)
-	{
-		UVertLine* MirroredLine = L->GetMirroredLine({ 1, -1, 1 });
-		StitchLines(L, MirroredLine, true);
-		StitchMirroredLines(MirroredLine, MirrorAxis & ~EMirrorAxis::X);
-	}
-
-	if (MirrorAxis & EMirrorAxis::Y)
-	{
-		UVertLine* MirroredLine = L->GetMirroredLine({ -1, 1, 1 });
-		StitchLines(L, MirroredLine, true);
-		StitchMirroredLines(MirroredLine, MirrorAxis & ~EMirrorAxis::Y);
-	}
-
-	if (MirrorAxis & EMirrorAxis::Z)
-	{
-		UVertLine* MirroredLine = L->GetMirroredLine({ 1, 1, -1 });
-		StitchLines(L, MirroredLine, true);
-		StitchMirroredLines(MirroredLine, MirrorAxis & ~EMirrorAxis::Z);
-	}
-}
-
-
 void UPromeshBuilder::StitchLines(UVertLine* L1, UVertLine* L2, bool bConnectEnds, uint8 MirrorAxis)
 {
 	UVertLine* Dense = L1->VertNum() >= L2->VertNum() ? L1 : L2;
@@ -210,19 +185,13 @@ void UPromeshBuilder::StitchLines(UVertLine* L1, UVertLine* L2, bool bConnectEnd
 
 	int32 Stop = bConnectEnds ? Dn : Dn - 1;
 
-	// sometimes there may be a different arrangement of triangles that minimizes distance
-	// and will look better
 
 	for (Di; Di < Stop; Di++)
 	{
 		Si = (int32)((float)Di * Inc);
 
-
 		if (Si != LastSi) // stitching a quad (two tris)
 		{
-			// Verts for quad are Si, Si - 1, Di, Di + 1
-
-
 			FVector TL = Sparse->At(Si - 1);
 			FVector TR = Sparse->At(Si);
 			FVector BL = Dense->At(Di);
