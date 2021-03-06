@@ -67,7 +67,7 @@ void USwordGen::GenerateBlade()
 		TaperCenters.Add(TaperDivCenter);
 	}
 
-	FVector TipTri[3] = { Tip, TaperMidCenter, TaperMidEdge };
+	FTri TipTri = { Tip, TaperMidCenter, TaperMidEdge };
 
 	FVector TaperQuad[4] = { TaperMidCenter, TaperCenter1, TaperEdge1, TaperMidEdge };
 
@@ -79,9 +79,9 @@ void USwordGen::GenerateBlade()
 
 
 	uint8 MirrorAxis = EMirrorAxis::X | EMirrorAxis::Z;
-	PromeshBuilder->MakeMirroredTri(TipTri, MirrorAxis);
-	PromeshBuilder->MakeMirroredQuad(TaperQuad, MirrorAxis);
-	PromeshBuilder->MakeMirroredQuad(EdgeQuad, MirrorAxis);
+	PromeshBuilder->MakeTri(TipTri, MirrorAxis);
+	PromeshBuilder->MakeQuad(TaperQuad, MirrorAxis);
+	PromeshBuilder->MakeQuad(EdgeQuad, MirrorAxis);
 
 	// Blade deco experiments
 
@@ -161,7 +161,7 @@ void USwordGen::GenerateGuard()
 	
 
 	TArray<UVertLine*> Lines = { L1, L2, L3, L4 };
-	PromeshBuilder->StitchLineSequence(Lines, false, Mirror);
+	PromeshBuilder->StitchLines(Lines, false, Mirror);
 
 
 
@@ -205,9 +205,9 @@ void USwordGen::GenerateGrip()
 	FVector Q5[4] = { FRU, BRU, BRD, FRD };
 
 	uint8 Mirror = EMirrorAxis::X | EMirrorAxis::Z;
-	PromeshBuilder->MakeMirroredQuad(Q2, Mirror);
-	PromeshBuilder->MakeMirroredQuad(Q3, Mirror);
-	PromeshBuilder->MakeMirroredQuad(Q5, Mirror);
+	PromeshBuilder->MakeQuad(Q2, Mirror);
+	PromeshBuilder->MakeQuad(Q3, Mirror);
+	PromeshBuilder->MakeQuad(Q5, Mirror);
 	PromeshBuilder->BuildMesh(Promesh, 2);
 }
 
@@ -277,7 +277,7 @@ void USwordGen::GenerateGripCap()
 	PromeshBuilder->AddBorderLines(L3, BorderThickness, 5, Mirror);
 
 	TArray<UVertLine*> LineSeq = { L1, L2, L3, L4 };
-	PromeshBuilder->StitchLineSequence(LineSeq, false, Mirror);
+	PromeshBuilder->StitchLines(LineSeq, false, Mirror);
 
 
 	PromeshBuilder->BuildMesh(Promesh, 3);
@@ -293,7 +293,7 @@ void USwordGen::GenerateDeco()
 	FVector Cp2 = { 25, 45, 11 };
 	Cube->Bend(15, Cp, Cp2);
 	uint8 Mirror = EMirrorAxis::X | EMirrorAxis::Z;
-	PromeshBuilder->StitchLineSequence(Cube->Lines, false, Mirror);
+	PromeshBuilder->StitchLines(Cube->Lines, false, Mirror);
 	PromeshBuilder->BuildMesh(Promesh, 4);
 }
 

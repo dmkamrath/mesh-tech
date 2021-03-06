@@ -77,36 +77,30 @@ int32 UPromeshBuilder::GetVertIndex(FVector Vert)
 
 void UPromeshBuilder::MakeQuad(FVector QuadVerts[4])
 {
-	FVector T1Verts[3] = { QuadVerts[0], QuadVerts[1], QuadVerts[2] };
-	FVector T2Verts[3] = { QuadVerts[0], QuadVerts[2], QuadVerts[3] };
+	FTri T1 = { QuadVerts[0], QuadVerts[1], QuadVerts[2] };
+	FTri T2 = { QuadVerts[0], QuadVerts[2], QuadVerts[3] };
 
 	// Or 0 1 3 and 1 2 3 if 0 -> 3 is shorter than 0 -> 2
 
-	MakeTri(T1Verts);
-	MakeTri(T2Verts);
+	MakeTri(T1);
+	MakeTri(T2);
 }
 
-void UPromeshBuilder::MakeMirroredQuad(FVector QuadVerts[4], uint8 MirrorAxis)
+void UPromeshBuilder::MakeQuad(FVector QuadVerts[4], uint8 MirrorAxis)
 {
-	FVector T1Verts[3] = { QuadVerts[0], QuadVerts[1], QuadVerts[2] };
-	FVector T2Verts[3] = { QuadVerts[0], QuadVerts[2], QuadVerts[3] };
-	MakeMirroredTri(T1Verts, MirrorAxis);
-	MakeMirroredTri(T2Verts, MirrorAxis);
+	FTri T1 = { QuadVerts[0], QuadVerts[1], QuadVerts[2] };
+	FTri T2 = { QuadVerts[0], QuadVerts[2], QuadVerts[3] };
+	MakeTri(T1, MirrorAxis);
+	MakeTri(T2, MirrorAxis);
 }
 
 void UPromeshBuilder::MakeTri(FTri Tri)
 {
-	FVector TriVerts[3] = { Tri.P0, Tri.P1, Tri.P2 };
-	MakeTri(TriVerts);
-}
+	FVector TriNormal = Tri.GetNormal();
 
-void UPromeshBuilder::MakeTri(FVector TriVerts[3])
-{
-	FVector TriNormal = GetTriNormal(TriVerts);
-
-	int32 Iv1 = GetVertIndex(TriVerts[0]);
-	int32 Iv2 = GetVertIndex(TriVerts[1]);
-	int32 Iv3 = GetVertIndex(TriVerts[2]);
+	int32 Iv1 = GetVertIndex(Tri[0]);
+	int32 Iv2 = GetVertIndex(Tri[1]);
+	int32 Iv3 = GetVertIndex(Tri[2]);
 
 	VertNormals[Iv1].AddFaceNormal(TriNormal);
 	VertNormals[Iv2].AddFaceNormal(TriNormal);
@@ -117,32 +111,13 @@ void UPromeshBuilder::MakeTri(FVector TriVerts[3])
 	Tris.Add(Iv3);
 }
 
-void UPromeshBuilder::MakeMirroredTri(FTri Tri, uint8 MirrorAxis)
+void UPromeshBuilder::MakeTri(FTri Tri, uint8 MirrorAxis)
 {
-	FVector TriVerts[3] = { Tri.P0, Tri.P1, Tri.P2 };
-	MakeMirroredTri(TriVerts, MirrorAxis);
-}
-
-void UPromeshBuilder::MakeMirroredTri(FVector TriVerts[3], uint8 MirrorAxis)
-{
-	FTri Tri(TriVerts[0], TriVerts[1], TriVerts[2]);
 	MakeTri(Tri);
 
-
-	if (MirrorAxis & EMirrorAxis::X)
-	{
-		MakeMirroredTri(Tri.Mirror({ 1, -1, 1 }, false), MirrorAxis & ~EMirrorAxis::X);
-	}
-
-	if (MirrorAxis & EMirrorAxis::Y)
-	{
-		MakeMirroredTri(Tri.Mirror({ -1, 1, 1 }, false), MirrorAxis & ~EMirrorAxis::Y);
-	}
-
-	if (MirrorAxis & EMirrorAxis::Z)
-	{
-		MakeMirroredTri(Tri.Mirror({ 1, 1, -1 }, false), MirrorAxis & ~EMirrorAxis::Z);
-	}
+	for (int32 A = EMirrorAxis::X; A < EMirrorAxis::Z + 1; A *= 2)
+		if(MirrorAxis & A)
+			MakeTri(Tri.Mirror(FMirror::Vec(A), false), MirrorAxis & ~A);
 }
 
 void UPromeshBuilder::StitchLines(UVertLine* L1, UVertLine* L2, bool bConnectEnds, uint8 MirrorAxis)
@@ -151,24 +126,7 @@ void UPromeshBuilder::StitchLines(UVertLine* L1, UVertLine* L2, bool bConnectEnd
 	UVertLine* Sparse = L1->VertNum() >= L2->VertNum() ? L2 : L1;
 
 	// Try to clamp verts before mirroring
-
-	if (MirrorAxis & EMirrorAxis::X)
-	{
-		Dense->ClampVertsForMirrorAxis({ 1, -1, 1 });
-		Sparse->ClampVertsForMirrorAxis({ 1, -1, 1 });
-	}
-
-	if (MirrorAxis & EMirrorAxis::Y)
-	{
-		Dense->ClampVertsForMirrorAxis({ -1, 1, 1 });
-		Sparse->ClampVertsForMirrorAxis({ -1, 1, 1 });
-	}
-
-	if (MirrorAxis & EMirrorAxis::Z)
-	{
-		Dense->ClampVertsForMirrorAxis({ 1, 1, -1 });
-		Sparse->ClampVertsForMirrorAxis({ 1, 1, -1 });
-	}
+	ClampLinesForMirror({ L1, L2 }, MirrorAxis);
 
 	bool bJagged = false;
 	
@@ -206,24 +164,24 @@ void UPromeshBuilder::StitchLines(UVertLine* L1, UVertLine* L2, bool bConnectEnd
 			if (bCutUp) // arrangement 1: quad with up diagonal
 			{
 				FTri T1(TL, BL, TR);
-				MakeMirroredTri(T1, MirrorAxis);
+				MakeTri(T1, MirrorAxis);
 
 				FTri T2(TR, BL, BR);
-				MakeMirroredTri(T2, MirrorAxis);
+				MakeTri(T2, MirrorAxis);
 			}
 			else // arrangement 2: quad with down diagonal
 			{
 				FTri T1(TL, BL, BR);
-				MakeMirroredTri(T1, MirrorAxis);
+				MakeTri(T1, MirrorAxis);
 
 				FTri T2(TR, TL, BR);
-				MakeMirroredTri(T2, MirrorAxis);
+				MakeTri(T2, MirrorAxis);
 			}
 		}
 		else // stitching a tri
 		{
 			FTri T(Sparse->At(Si), Dense->At(Di), Dense->At(Di + 1));
-			MakeMirroredTri(T, MirrorAxis);
+			MakeTri(T, MirrorAxis);
 		}
 
 		LastSi = Si;
@@ -233,29 +191,30 @@ void UPromeshBuilder::StitchLines(UVertLine* L1, UVertLine* L2, bool bConnectEnd
 	if (Si != LastSi)
 	{
 		FTri T(Sparse->At(Si - 1), Dense->At(Di), Sparse->At(Si));
-		MakeMirroredTri(T, MirrorAxis);
+		MakeTri(T, MirrorAxis);
 	}
 }
 
-void UPromeshBuilder::StitchLineSequence(TArray<UVertLine*> Lines, bool bConnectEnds, uint8 MirrorAxis)
+void UPromeshBuilder::ClampLinesForMirror(TArray<UVertLine*> Lines, uint8 MirrorAxis)
+{
+	for (auto L : Lines)
+		for (int32 A = EMirrorAxis::X; A < EMirrorAxis::Z + 1; A *= 2)
+			if (MirrorAxis & A)
+				L->ClampVertsForMirrorAxis(FMirror::Vec(A));
+}
+
+void UPromeshBuilder::StitchLines(TArray<UVertLine*> Lines, bool bConnectEnds, uint8 MirrorAxis)
 {
 	for (int32 I = 0; I < Lines.Num() - 1; I++)
-	{
 		StitchLines(Lines[I], Lines[I + 1], bConnectEnds, MirrorAxis);
-	}
 }
 
 void UPromeshBuilder::AddBorderLines(UVertLine* CenterLine, float SegmentThickness, int32 SegmentVertCount, uint8 MirrorAxis, float ThicknessDecay)
 {
 	TArray<UVertLine*> Enc = CenterLine->BorderLine(SegmentThickness, SegmentVertCount, ThicknessDecay);
 
-	//Doesnt work too good
-	//StitchMirroredLines(Enc[0], EMirrorAxis::X);
-
 	for (int32 I = 1; I < Enc.Num(); I++)
-	{
 		StitchLines(Enc[I], Enc[I - 1], true, MirrorAxis);
-	}
 
 	// Cap end
 	UVertLine* Last = Enc[Enc.Num() - 1];
@@ -294,46 +253,6 @@ void UPromeshBuilder::MakeDoubleSided()
 	for (auto T : OtherSideTris)
 	{
 		MakeTri(T);
-	}
-}
-
-bool UPromeshBuilder::IsTriangleClockwise(FTri Tri)
-{
-	float A = Tri.P1.X - Tri.P0.X * Tri.P1.Y - Tri.P0.Y * Tri.P1.Z - Tri.P0.Z;
-	float B = Tri.P2.X - Tri.P1.X * Tri.P2.Y - Tri.P1.Y * Tri.P2.Z - Tri.P1.Z;
-	float C = Tri.P0.X - Tri.P2.X * Tri.P0.Y - Tri.P2.Y * Tri.P0.Z - Tri.P2.Z;
-	float Sum = A + B + C;
-	return Sum > 0.0;
-}
-
-void UPromeshBuilder::RecalculateNormals()
-{
-	FVector LastNormal(0, 0, 0);
-	for (int32 I = 0; I < Tris.Num(); I += 3)
-	{
-		int32 V1I = Tris[I];
-		int32 V2I = Tris[I + 1];
-		int32 V3I = Tris[I + 2];
-		FTri Tri(Verts[V1I], Verts[V2I], Verts[V3I]);
-
-		FVector ThisNormal = Tri.GetNormal();
-
-		bool bFlip = false;
-
-		if (LastNormal != FVector(0, 0, 0))
-		{
-			float Dp = FVector::DotProduct(ThisNormal, LastNormal);
-			bFlip = Dp <= -0.4;
-		}
-		
-		//bool Cw = IsTriangleClockwise(FTri(Verts[V1I], Verts[V2I], Verts[V3I]));
-		if (bFlip)
-		{
-			Tris[I] = V3I;
-			Tris[I + 2] = V1I;
-			Tri.Invert();
-		}
-		LastNormal = Tri.GetNormal();
 	}
 }
 

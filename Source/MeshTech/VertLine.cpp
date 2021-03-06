@@ -146,14 +146,8 @@ void UVertLine::Bend(int32 Divisions, FVector ControlPoint1, FVector ControlPoin
 	AddBezierPoints(Divisions, P0, ControlPoint1, ControlPoint2, P3);
 }
 
-void UVertLine::ClampVertsForMirrorAxis(FIntVector MirrorAxis)
+void UVertLine::ClampVertsForMirrorAxis(FVector MirrorAxis)
 {
-	// For the set axis (which is negative) find the majority sign of verts, then set any that cross it to zero
-
-	// Maybe set all verts to zero if one fails the check ?
-
-	// Need extra reference verts / lines
-
 	if (MirrorAxis[0] == -1)
 	{
 		bool bViolatedX = false;

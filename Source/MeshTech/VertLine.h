@@ -46,7 +46,7 @@ public:
 
 	void Bend(int32 Divisions, FVector ControlPoint1, FVector ControlPoint2);
 
-	void ClampVertsForMirrorAxis(FIntVector MirrorAxis);
+	void ClampVertsForMirrorAxis(FVector MirrorAxis);
 
 	void AddBezierPoints(int32 N, FVector P0, FVector P1, FVector P2);
 

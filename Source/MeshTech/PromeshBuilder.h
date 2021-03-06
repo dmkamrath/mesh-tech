@@ -65,6 +65,20 @@ enum EMirrorAxis
 	Z = 0b100
 };
 
+struct FMirror
+{
+	static FVector Vec(uint8 MirrorAxis)
+	{
+		if (MirrorAxis & EMirrorAxis::X)
+			return { 1, -1, 1 };
+		if (MirrorAxis & EMirrorAxis::Y)
+			return { -1, 1, 1 };
+		if (MirrorAxis & EMirrorAxis::Z)
+			return { 1, 1, -1 };
+		return { 1,1,1 };
+	}
+};
+
 USTRUCT()
 struct FVertexNormal
 {
@@ -121,6 +135,18 @@ public:
 		FVector B = P1 - P0;
 		return FVector::CrossProduct(A, B).GetSafeNormal();
 	}
+
+	FVector& operator[] (int32 Index)
+	{
+		switch (Index)
+		{
+		case 0:
+			return P0;
+		case 1:
+			return P1;
+		}
+		return P2;
+	}
 };
 
 UCLASS()
@@ -173,19 +199,17 @@ public:
 
 	void MakeQuad(FVector QuadVerts[4]);
 
-	void MakeMirroredQuad(FVector QuadVerts[4], uint8 MirrorAxis);
+	void MakeQuad(FVector QuadVerts[4], uint8 MirrorAxis);
 
 	void MakeTri(FTri Tri);
 
-	void MakeTri(FVector TriVerts[3]);
-
-	void MakeMirroredTri(FTri Tri, uint8 MirrorAxis);
-
-	void MakeMirroredTri(FVector TriVerts[3], uint8 MirrorAxis);
+	void MakeTri(FTri Tri, uint8 MirrorAxis);
 
 	void StitchLines(UVertLine* L1, UVertLine* L2, bool bConnectEnds = false, uint8 MirrorAxis = 0);
 
-	void StitchLineSequence(TArray<UVertLine*> Lines, bool bConnectEnds = false, uint8 MirrorAxis = 0);
+	void StitchLines(TArray<UVertLine*> Lines, bool bConnectEnds = false, uint8 MirrorAxis = 0);
+
+	void ClampLinesForMirror(TArray<UVertLine*> Lines, uint8 MirrorAxis);
 
 	void AddBorderLines(UVertLine* CenterLine, float SegmentThickness, int32 SegmentVertCount, uint8 MirrorAxis = 0, float ThicknessDecay = 1.0);
 
@@ -194,10 +218,6 @@ public:
 	void SetMaterialParams(FPromeshMaterialParams NewParams);
 
 	void MakeDoubleSided();
-
-	bool IsTriangleClockwise(FTri Tri);
-
-	void RecalculateNormals();
 
 	TArray<FVector> GetVerts();
 
